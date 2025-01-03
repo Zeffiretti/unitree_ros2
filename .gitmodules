@@ -1,0 +1,4 @@
+[submodule "cyclonedds_ws/src/cyclonedds"]
+	path = cyclonedds_ws/src/cyclonedds
+	url = https://github.com/eclipse-cyclonedds/cyclonedds
+	branch = releases/0.10.x
