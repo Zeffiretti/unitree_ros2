@@ -1,5 +1,15 @@
 echo "Setup unitree ros2 simulation environment"
-source /opt/ros/humble/setup.zsh
+SYS_VERSION=$(lsb_release -rs)
+if [ $SYS_VERSION = "20.04" ]; then
+    ros_distro="foxy"
+elif [ $SYS_VERSION = "22.04" ]; then
+    ros_distro="humble"
+else
+    echo "Unsupported system version: $SYS_VERSION"
+    return
+fi
+echo "ROS distro: $ros_distro"
+source /opt/ros/$ros_distro/setup.zsh
 this_script_dir=$(dirname "$0")
 this_script_abs_dir=$(realpath $this_script_dir)
 source $this_script_abs_dir/install/setup.zsh
