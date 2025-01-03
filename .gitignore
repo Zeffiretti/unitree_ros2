@@ -3,3 +3,7 @@
 **/__pycache__/
 **/log/
 **/install/
+
+log/
+install/
+cyclonedds_ws/src/cyclonedds/

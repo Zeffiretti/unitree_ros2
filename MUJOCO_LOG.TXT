@@ -1,0 +1,6 @@
+Fri Jan  3 22:58:46 2025
+WARNING: mju_openResource: unknown file '/home/hiesh/code/quarduped/unitree_ros2/unitree_sim/src/app/simulator/../../unitree_robots/go2/scene.xml'
+
+Fri Jan  3 23:01:19 2025
+WARNING: mju_openResource: unknown file '/home/hiesh/code/quarduped/unitree_ros2/unitree_sim/src/app/simulator/../robots/go2/scene.xml'
+
