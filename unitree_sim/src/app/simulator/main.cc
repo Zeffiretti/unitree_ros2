@@ -33,7 +33,7 @@
 #include "app/simulator/mujoco/glfw_adapter.h"
 #include "app/simulator/mujoco/simulate.h"
 #include "app/simulator/unitree_ros2_bridge/unitree_ros2_bridge.h"
-#include "app/simulator/unitree_sdk2_bridge/unitree_sdk2_bridge.h"
+// #include "app/simulator/unitree_sdk2_bridge/unitree_sdk2_bridge.h"
 
 #define MUJOCO_PLUGIN_DIR "mujoco_plugin"
 
@@ -497,7 +497,6 @@ void* UnitreeRos2BridgeThread(void* arg) {
     config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "base_link");
   }
 
-  unitree::robot::ChannelFactory::Instance()->Init(config.domain_id, config.interface);
   // UnitreeSdk2Bridge unitree_interface(m, d);
   // unitreesim::ros2::UnitreeRos2Bridge unitree_interface(m, d);
   auto unitree_interface = std::make_shared<unitreesim::ros2::UnitreeRos2Bridge>(m, d, "unitree_ros2_bridge", false);
@@ -515,37 +514,37 @@ void* UnitreeRos2BridgeThread(void* arg) {
   pthread_exit(NULL);
 }
 
-void* UnitreeSdk2BridgeThread(void* arg) {
-  // Wait for mujoco data
-  while (1) {
-    if (d) {
-      std::cout << "Mujoco data is prepared" << std::endl;
-      break;
-    }
-    usleep(500000);
-  }
+// void* UnitreeSdk2BridgeThread(void* arg) {
+//   // Wait for mujoco data
+//   while (1) {
+//     if (d) {
+//       std::cout << "Mujoco data is prepared" << std::endl;
+//       break;
+//     }
+//     usleep(500000);
+//   }
 
-  if (config.robot == "h1" || config.robot == "g1") {
-    config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "torso_link");
-  } else {
-    config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "base_link");
-  }
+//   if (config.robot == "h1" || config.robot == "g1") {
+//     config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "torso_link");
+//   } else {
+//     config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "base_link");
+//   }
 
-  unitree::robot::ChannelFactory::Instance()->Init(config.domain_id, config.interface);
-  UnitreeSdk2Bridge unitree_interface(m, d);
+//   unitree::robot::ChannelFactory::Instance()->Init(config.domain_id, config.interface);
+//   UnitreeSdk2Bridge unitree_interface(m, d);
 
-  if (config.use_joystick == 1) {
-    unitree_interface.SetupJoystick(config.joystick_device, config.joystick_type, config.joystick_bits);
-  }
+//   if (config.use_joystick == 1) {
+//     unitree_interface.SetupJoystick(config.joystick_device, config.joystick_type, config.joystick_bits);
+//   }
 
-  if (config.print_scene_information == 1) {
-    unitree_interface.PrintSceneInformation();
-  }
+//   if (config.print_scene_information == 1) {
+//     unitree_interface.PrintSceneInformation();
+//   }
 
-  unitree_interface.Run();
+//   unitree_interface.Run();
 
-  pthread_exit(NULL);
-}
+//   pthread_exit(NULL);
+// }
 //------------------------------------------ main
 //--------------------------------------------------
 
@@ -627,7 +626,7 @@ int main(int argc, char** argv) {
   if (config.comm_bridge == "ros2") {
     rc = pthread_create(&unitree_thread, NULL, UnitreeRos2BridgeThread, NULL);
   } else if (config.comm_bridge == "sdk2") {
-    rc = pthread_create(&unitree_thread, NULL, UnitreeSdk2BridgeThread, NULL);
+    // rc = pthread_create(&unitree_thread, NULL, UnitreeSdk2BridgeThread, NULL);
   }
   // int rc = pthread_create(&unitree_thread, NULL, UnitreeSdk2BridgeThread, NULL);
   if (rc != 0) {

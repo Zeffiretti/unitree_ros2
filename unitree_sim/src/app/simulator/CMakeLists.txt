@@ -7,17 +7,19 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FILE (GLOB SIM_SRC
-        joystick/joystick.cc
-        mujoco/*.cc
-        unitree_ros2_bridge/*.cc
-        unitree_sdk2_bridge/*.cc)
+    joystick/joystick.cc
+    mujoco/*.cc
+    unitree_ros2_bridge/*.cc
+    # unitree_sdk2_bridge/*.cc
+)
 
 set(SIM_DEPENDENCIES
     pthread
     mujoco::mujoco
     glfw
     yaml-cpp
-    unitree_sdk2)
+    # unitree_sdk2
+)
 
 
 add_executable(unitree_mujoco ${SIM_SRC} main.cc)

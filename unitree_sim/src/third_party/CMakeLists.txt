@@ -1,2 +1,2 @@
 add_subdirectory(mujoco)
-add_subdirectory(unitree_sdk2)
+# add_subdirectory(unitree_sdk2)
