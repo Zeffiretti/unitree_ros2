@@ -3,89 +3,62 @@
 
 #include <string>
 
-UnitreeSdk2Bridge::UnitreeSdk2Bridge(mjModel* model, mjData* data)
-    : mj_model_(model), mj_data_(data) {
+UnitreeSdk2Bridge::UnitreeSdk2Bridge(mjModel* model, mjData* data) : mj_model_(model), mj_data_(data) {
   CheckSensor();
 
   if (idl_type_ == 0) {
-    low_cmd_go_suber_.reset(
-        new unitree::robot::ChannelSubscriber<unitree_go::msg::dds_::LowCmd_>(
-            TOPIC_LOWCMD));
-    low_cmd_go_suber_->InitChannel(
-        bind(&UnitreeSdk2Bridge::LowCmdGoHandler, this, std::placeholders::_1),
-        1);
+    low_cmd_go_suber_.reset(new unitree::robot::ChannelSubscriber<unitree_go::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+    low_cmd_go_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdGoHandler, this, std::placeholders::_1), 1);
 
-    low_state_go_puber_.reset(
-        new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::LowState_>(
-            TOPIC_LOWSTATE));
+    low_state_go_puber_.reset(new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::LowState_>(TOPIC_LOWSTATE));
     low_state_go_puber_->InitChannel();
 
-    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx(
-        "lowstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishLowStateGo,
-        this);
+    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000,
+                                                                      &UnitreeSdk2Bridge::PublishLowStateGo, this);
   } else {
-    low_cmd_hg_suber_.reset(
-        new unitree::robot::ChannelSubscriber<unitree_hg::msg::dds_::LowCmd_>(
-            TOPIC_LOWCMD));
-    low_cmd_hg_suber_->InitChannel(
-        bind(&UnitreeSdk2Bridge::LowCmdHgHandler, this, std::placeholders::_1),
-        1);
+    low_cmd_hg_suber_.reset(new unitree::robot::ChannelSubscriber<unitree_hg::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+    low_cmd_hg_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdHgHandler, this, std::placeholders::_1), 1);
 
-    low_state_hg_puber_.reset(
-        new unitree::robot::ChannelPublisher<unitree_hg::msg::dds_::LowState_>(
-            TOPIC_LOWSTATE));
+    low_state_hg_puber_.reset(new unitree::robot::ChannelPublisher<unitree_hg::msg::dds_::LowState_>(TOPIC_LOWSTATE));
     low_state_hg_puber_->InitChannel();
 
-    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx(
-        "lowstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishLowStateHg,
-        this);
+    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000,
+                                                                      &UnitreeSdk2Bridge::PublishLowStateHg, this);
   }
 
   high_state_puber_.reset(
-      new unitree::robot::ChannelPublisher<
-          unitree_go::msg::dds_::SportModeState_>(TOPIC_HIGHSTATE));
+      new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::SportModeState_>(TOPIC_HIGHSTATE));
   high_state_puber_->InitChannel();
-  wireless_controller_puber_.reset(new unitree::robot::ChannelPublisher<
-                                   unitree_go::msg::dds_::WirelessController_>(
-      TOPIC_WIRELESS_CONTROLLER));
+  wireless_controller_puber_.reset(
+      new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::WirelessController_>(TOPIC_WIRELESS_CONTROLLER));
   wireless_controller_puber_->InitChannel();
 
-  HighStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx(
-      "highstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishHighState,
-      this);
+  HighStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("highstate", UT_CPU_ID_NONE, 2000,
+                                                                     &UnitreeSdk2Bridge::PublishHighState, this);
   WirelessControllerPuberThreadPtr = unitree::common::CreateRecurrentThreadEx(
-      "wirelesscontroller", UT_CPU_ID_NONE, 2000,
-      &UnitreeSdk2Bridge::PublishWirelessController, this);
+      "wirelesscontroller", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishWirelessController, this);
 }
 
 UnitreeSdk2Bridge::~UnitreeSdk2Bridge() { delete js_; }
 
 void UnitreeSdk2Bridge::LowCmdGoHandler(const void* msg) {
-  const unitree_go::msg::dds_::LowCmd_* cmd =
-      (const unitree_go::msg::dds_::LowCmd_*)msg;
+  const unitree_go::msg::dds_::LowCmd_* cmd = (const unitree_go::msg::dds_::LowCmd_*)msg;
   if (mj_data_) {
     for (int i = 0; i < num_motor_; i++) {
-      mj_data_->ctrl[i] =
-          cmd->motor_cmd()[i].tau() +
-          cmd->motor_cmd()[i].kp() *
-              (cmd->motor_cmd()[i].q() - mj_data_->sensordata[i]) +
-          cmd->motor_cmd()[i].kd() *
-              (cmd->motor_cmd()[i].dq() - mj_data_->sensordata[i + num_motor_]);
+      mj_data_->ctrl[i] = cmd->motor_cmd()[i].tau() +
+                          cmd->motor_cmd()[i].kp() * (cmd->motor_cmd()[i].q() - mj_data_->sensordata[i]) +
+                          cmd->motor_cmd()[i].kd() * (cmd->motor_cmd()[i].dq() - mj_data_->sensordata[i + num_motor_]);
     }
   }
 }
 
 void UnitreeSdk2Bridge::LowCmdHgHandler(const void* msg) {
-  const unitree_hg::msg::dds_::LowCmd_* cmd =
-      (const unitree_hg::msg::dds_::LowCmd_*)msg;
+  const unitree_hg::msg::dds_::LowCmd_* cmd = (const unitree_hg::msg::dds_::LowCmd_*)msg;
   if (mj_data_) {
     for (int i = 0; i < num_motor_; i++) {
-      mj_data_->ctrl[i] =
-          cmd->motor_cmd()[i].tau() +
-          cmd->motor_cmd()[i].kp() *
-              (cmd->motor_cmd()[i].q() - mj_data_->sensordata[i]) +
-          cmd->motor_cmd()[i].kd() *
-              (cmd->motor_cmd()[i].dq() - mj_data_->sensordata[i + num_motor_]);
+      mj_data_->ctrl[i] = cmd->motor_cmd()[i].tau() +
+                          cmd->motor_cmd()[i].kp() * (cmd->motor_cmd()[i].q() - mj_data_->sensordata[i]) +
+                          cmd->motor_cmd()[i].kd() * (cmd->motor_cmd()[i].dq() - mj_data_->sensordata[i + num_motor_]);
     }
   }
 }
@@ -94,35 +67,23 @@ void UnitreeSdk2Bridge::PublishLowStateGo() {
   if (mj_data_) {
     for (int i = 0; i < num_motor_; i++) {
       low_state_go_.motor_state()[i].q() = mj_data_->sensordata[i];
-      low_state_go_.motor_state()[i].dq() =
-          mj_data_->sensordata[i + num_motor_];
-      low_state_go_.motor_state()[i].tau_est() =
-          mj_data_->sensordata[i + 2 * num_motor_];
+      low_state_go_.motor_state()[i].dq() = mj_data_->sensordata[i + num_motor_];
+      low_state_go_.motor_state()[i].tau_est() = mj_data_->sensordata[i + 2 * num_motor_];
     }
 
     if (have_frame_sensor_) {
-      low_state_go_.imu_state().quaternion()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 0];
-      low_state_go_.imu_state().quaternion()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 1];
-      low_state_go_.imu_state().quaternion()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 2];
-      low_state_go_.imu_state().quaternion()[3] =
-          mj_data_->sensordata[dim_motor_sensor_ + 3];
+      low_state_go_.imu_state().quaternion()[0] = mj_data_->sensordata[dim_motor_sensor_ + 0];
+      low_state_go_.imu_state().quaternion()[1] = mj_data_->sensordata[dim_motor_sensor_ + 1];
+      low_state_go_.imu_state().quaternion()[2] = mj_data_->sensordata[dim_motor_sensor_ + 2];
+      low_state_go_.imu_state().quaternion()[3] = mj_data_->sensordata[dim_motor_sensor_ + 3];
 
-      low_state_go_.imu_state().gyroscope()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 4];
-      low_state_go_.imu_state().gyroscope()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 5];
-      low_state_go_.imu_state().gyroscope()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 6];
+      low_state_go_.imu_state().gyroscope()[0] = mj_data_->sensordata[dim_motor_sensor_ + 4];
+      low_state_go_.imu_state().gyroscope()[1] = mj_data_->sensordata[dim_motor_sensor_ + 5];
+      low_state_go_.imu_state().gyroscope()[2] = mj_data_->sensordata[dim_motor_sensor_ + 6];
 
-      low_state_go_.imu_state().accelerometer()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 7];
-      low_state_go_.imu_state().accelerometer()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 8];
-      low_state_go_.imu_state().accelerometer()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 9];
+      low_state_go_.imu_state().accelerometer()[0] = mj_data_->sensordata[dim_motor_sensor_ + 7];
+      low_state_go_.imu_state().accelerometer()[1] = mj_data_->sensordata[dim_motor_sensor_ + 8];
+      low_state_go_.imu_state().accelerometer()[2] = mj_data_->sensordata[dim_motor_sensor_ + 9];
     }
 
     if (js_) {
@@ -138,35 +99,23 @@ void UnitreeSdk2Bridge::PublishLowStateHg() {
   if (mj_data_) {
     for (int i = 0; i < num_motor_; i++) {
       low_state_hg_.motor_state()[i].q() = mj_data_->sensordata[i];
-      low_state_hg_.motor_state()[i].dq() =
-          mj_data_->sensordata[i + num_motor_];
-      low_state_hg_.motor_state()[i].tau_est() =
-          mj_data_->sensordata[i + 2 * num_motor_];
+      low_state_hg_.motor_state()[i].dq() = mj_data_->sensordata[i + num_motor_];
+      low_state_hg_.motor_state()[i].tau_est() = mj_data_->sensordata[i + 2 * num_motor_];
     }
 
     if (have_frame_sensor_) {
-      low_state_hg_.imu_state().quaternion()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 0];
-      low_state_hg_.imu_state().quaternion()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 1];
-      low_state_hg_.imu_state().quaternion()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 2];
-      low_state_hg_.imu_state().quaternion()[3] =
-          mj_data_->sensordata[dim_motor_sensor_ + 3];
+      low_state_hg_.imu_state().quaternion()[0] = mj_data_->sensordata[dim_motor_sensor_ + 0];
+      low_state_hg_.imu_state().quaternion()[1] = mj_data_->sensordata[dim_motor_sensor_ + 1];
+      low_state_hg_.imu_state().quaternion()[2] = mj_data_->sensordata[dim_motor_sensor_ + 2];
+      low_state_hg_.imu_state().quaternion()[3] = mj_data_->sensordata[dim_motor_sensor_ + 3];
 
-      low_state_hg_.imu_state().gyroscope()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 4];
-      low_state_hg_.imu_state().gyroscope()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 5];
-      low_state_hg_.imu_state().gyroscope()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 6];
+      low_state_hg_.imu_state().gyroscope()[0] = mj_data_->sensordata[dim_motor_sensor_ + 4];
+      low_state_hg_.imu_state().gyroscope()[1] = mj_data_->sensordata[dim_motor_sensor_ + 5];
+      low_state_hg_.imu_state().gyroscope()[2] = mj_data_->sensordata[dim_motor_sensor_ + 6];
 
-      low_state_hg_.imu_state().accelerometer()[0] =
-          mj_data_->sensordata[dim_motor_sensor_ + 7];
-      low_state_hg_.imu_state().accelerometer()[1] =
-          mj_data_->sensordata[dim_motor_sensor_ + 8];
-      low_state_hg_.imu_state().accelerometer()[2] =
-          mj_data_->sensordata[dim_motor_sensor_ + 9];
+      low_state_hg_.imu_state().accelerometer()[0] = mj_data_->sensordata[dim_motor_sensor_ + 7];
+      low_state_hg_.imu_state().accelerometer()[1] = mj_data_->sensordata[dim_motor_sensor_ + 8];
+      low_state_hg_.imu_state().accelerometer()[2] = mj_data_->sensordata[dim_motor_sensor_ + 9];
     }
 
     if (js_) {
@@ -212,14 +161,10 @@ void UnitreeSdk2Bridge::PublishWirelessController() {
     dds_keys_.components.down = (js_->axis_[js_id_.axis["DY"]] > 0);
     dds_keys_.components.left = (js_->axis_[js_id_.axis["DX"]] < 0);
 
-    wireless_controller_.lx() =
-        double(js_->axis_[js_id_.axis["LX"]]) / max_value_;
-    wireless_controller_.ly() =
-        -double(js_->axis_[js_id_.axis["LY"]]) / max_value_;
-    wireless_controller_.rx() =
-        double(js_->axis_[js_id_.axis["RX"]]) / max_value_;
-    wireless_controller_.ry() =
-        -double(js_->axis_[js_id_.axis["RY"]]) / max_value_;
+    wireless_controller_.lx() = double(js_->axis_[js_id_.axis["LX"]]) / max_value_;
+    wireless_controller_.ly() = -double(js_->axis_[js_id_.axis["LY"]]) / max_value_;
+    wireless_controller_.rx() = double(js_->axis_[js_id_.axis["RX"]]) / max_value_;
+    wireless_controller_.ry() = -double(js_->axis_[js_id_.axis["RY"]]) / max_value_;
     wireless_controller_.keys() = dds_keys_.value;
 
     wireless_controller_puber_->Write(wireless_controller_);
@@ -232,8 +177,7 @@ void UnitreeSdk2Bridge::Run() {
   }
 }
 
-void UnitreeSdk2Bridge::SetupJoystick(std::string device, std::string js_type,
-                                      int bits) {
+void UnitreeSdk2Bridge::SetupJoystick(std::string device, std::string js_type, int bits) {
   js_ = new Joystick(device);
   if (!js_->isFound()) {
     std::cout << "Error: Joystick open failed." << std::endl;
@@ -357,8 +301,7 @@ void UnitreeSdk2Bridge::GetWirelessRemote() {
   wireless_remote_.btn.components.R1 = js_->button_[js_id_.button["RB"]];
   wireless_remote_.btn.components.L1 = js_->button_[js_id_.button["LB"]];
   wireless_remote_.btn.components.start = js_->button_[js_id_.button["START"]];
-  wireless_remote_.btn.components.select =
-      js_->button_[js_id_.button["SELECT"]];
+  wireless_remote_.btn.components.select = js_->button_[js_id_.button["SELECT"]];
   wireless_remote_.btn.components.R2 = (js_->axis_[js_id_.axis["RT"]] > 0);
   wireless_remote_.btn.components.L2 = (js_->axis_[js_id_.axis["LT"]] > 0);
   wireless_remote_.btn.components.F1 = 0;

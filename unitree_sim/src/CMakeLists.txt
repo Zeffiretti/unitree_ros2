@@ -20,7 +20,7 @@ list(APPEND CMAKE_MODULE_PATH "${UNITREE_SIM_ROOT_DIR}/cmake")
 list(APPEND UNITREE_INCLUDE_DIRS "${UNITREE_SIM_ROOT_DIR}")
 
 
-include_directories(include include/common include/nlohmann)
+# include_directories(include include/common include/nlohmann)
 link_directories(src)
 
 set (
@@ -42,18 +42,20 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 
-add_subdirectory(third_party)
-add_subdirectory(app)
 
 add_executable(low_level_ctrl low_level_ctrl.cpp common/motor_crc.cpp)
 target_include_directories(low_level_ctrl PUBLIC ${UNITREE_INCLUDE_DIRS})
-
 ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
+add_executable(motion_cmd_suber low_ctrl_listener.cpp)
+target_include_directories(motion_cmd_suber PUBLIC ${UNITREE_INCLUDE_DIRS})
+ament_target_dependencies(motion_cmd_suber ${DEPENDENCY_LIST})
 
-install(TARGETS 
-        low_level_ctrl
-        DESTINATION)
+# install(TARGETS 
+#         low_level_ctrl
+#         DESTINATION)
 
+add_subdirectory(third_party)
+add_subdirectory(app)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -50,7 +50,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/UwbState.msg"
         "msg/UwbSwitch.msg"
         "msg/WirelessController.msg"
-  DEPENDENCIES geometry_msgs
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
 rosidl_generate_dds_interfaces(

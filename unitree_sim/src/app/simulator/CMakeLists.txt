@@ -9,9 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 FILE (GLOB SIM_SRC
         joystick/joystick.cc
         mujoco/*.cc
+        unitree_ros2_bridge/*.cc
         unitree_sdk2_bridge/*.cc)
 
-set(SIM_DEPENDENCIES 
+set(SIM_DEPENDENCIES
     pthread
     mujoco::mujoco
     glfw
@@ -22,6 +23,7 @@ set(SIM_DEPENDENCIES
 add_executable(unitree_mujoco ${SIM_SRC} main.cc)
 target_include_directories(unitree_mujoco PRIVATE ${UNITREE_INCLUDE_DIRS})
 target_link_libraries(unitree_mujoco  ${SIM_DEPENDENCIES})
+ament_target_dependencies(unitree_mujoco ${DEPENDENCY_LIST})
 
 # add_executable(test test/test_unitree_sdk2.cpp)
 # target_include_directories(test PRIVATE ${UNITREE_INCLUDE_DIRS})
