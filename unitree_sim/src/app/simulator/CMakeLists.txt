@@ -10,7 +10,7 @@ FILE (GLOB SIM_SRC
     joystick/joystick.cc
     mujoco/*.cc
     unitree_ros2_bridge/*.cc
-    # unitree_sdk2_bridge/*.cc
+    unitree_sdk2_bridge/*.cc
 )
 
 set(SIM_DEPENDENCIES
@@ -18,7 +18,7 @@ set(SIM_DEPENDENCIES
     mujoco::mujoco
     glfw
     yaml-cpp
-    # unitree_sdk2
+    unitree_sdk2
 )
 
 

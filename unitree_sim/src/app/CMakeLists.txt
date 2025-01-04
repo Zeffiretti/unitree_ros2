@@ -182,3 +182,4 @@ endif()
 
 
 add_subdirectory(simulator)
+add_subdirectory(controller)

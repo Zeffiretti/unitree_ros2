@@ -9,28 +9,29 @@ namespace unitreesim::ros2 {
 UnitreeRos2Bridge::UnitreeRos2Bridge(mjModel* model, mjData* data, const std::string& node_name, bool dry_run)
     : rclcpp::Node(node_name), mj_data_(data), mj_model_(model) {
   CheckSensor();
+  RCLCPP_INFO(this->get_logger(), "UnitreeRos2Bridge: idl_type_ = %d", idl_type_);
 
   if (idl_type_ == 0) {
     low_cmd_go_suber_ = this->create_subscription<unitree_go::msg::LowCmd>(
         TOPIC_LOWCMD, 10, std::bind(&UnitreeRos2Bridge::LowCmdGoHandler, this, std::placeholders::_1));
     low_state_go_puber_ = this->create_publisher<unitree_go::msg::LowState>(TOPIC_LOWSTATE, 10);
-    lowStatePuberTimer_ = this->create_wall_timer(std::chrono::milliseconds(2000),
+    lowStatePuberTimer_ = this->create_wall_timer(std::chrono::microseconds(2000),
                                                   std::bind(&UnitreeRos2Bridge::PublishLowStateGo, this));
   } else {
     low_cmd_hg_suber_ = this->create_subscription<unitree_hg::msg::LowCmd>(
         TOPIC_LOWCMD, 10, std::bind(&UnitreeRos2Bridge::LowCmdHgHandler, this, std::placeholders::_1));
     low_state_hg_puber_ = this->create_publisher<unitree_hg::msg::LowState>(TOPIC_LOWSTATE, 10);
-    lowStatePuberTimer_ = this->create_wall_timer(std::chrono::milliseconds(2000),
+    lowStatePuberTimer_ = this->create_wall_timer(std::chrono::microseconds(2000),
                                                   std::bind(&UnitreeRos2Bridge::PublishLowStateHg, this));
   }
 
   high_state_puber_ = this->create_publisher<unitree_go::msg::SportModeState>(TOPIC_HIGHSTATE, 10);
   HighStatePuberTimer_ =
-      this->create_wall_timer(std::chrono::milliseconds(2000), std::bind(&UnitreeRos2Bridge::PublishHighState, this));
+      this->create_wall_timer(std::chrono::microseconds(2000), std::bind(&UnitreeRos2Bridge::PublishHighState, this));
   wireless_controller_puber_ =
       this->create_publisher<unitree_go::msg::WirelessController>(TOPIC_WIRELESS_CONTROLLER, 10);
   WirelessControllerPuberTimer_ = this->create_wall_timer(
-      std::chrono::milliseconds(2000), std::bind(&UnitreeRos2Bridge::PublishWirelessController, this));
+      std::chrono::microseconds(2000), std::bind(&UnitreeRos2Bridge::PublishWirelessController, this));
 }
 
 UnitreeRos2Bridge::~UnitreeRos2Bridge() { delete js_; }
@@ -98,6 +99,7 @@ void UnitreeRos2Bridge::PublishLowStateGo() {
 }
 
 void UnitreeRos2Bridge::LowCmdHgHandler(const unitree_hg::msg::LowCmd::SharedPtr msg) {
+  std::cout << "LowCmdHgHandler" << std::endl;
   if (mj_data_) {
     for (int i = 0; i < num_motor_; ++i) {
       mj_data_->ctrl[i] = msg->motor_cmd[i].tau +

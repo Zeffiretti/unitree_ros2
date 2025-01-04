@@ -43,9 +43,6 @@ find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 
 
-add_executable(low_level_ctrl low_level_ctrl.cpp common/motor_crc.cpp)
-target_include_directories(low_level_ctrl PUBLIC ${UNITREE_INCLUDE_DIRS})
-ament_target_dependencies(low_level_ctrl ${DEPENDENCY_LIST})
 add_executable(motion_cmd_suber low_ctrl_listener.cpp)
 target_include_directories(motion_cmd_suber PUBLIC ${UNITREE_INCLUDE_DIRS})
 ament_target_dependencies(motion_cmd_suber ${DEPENDENCY_LIST})
@@ -54,6 +51,7 @@ ament_target_dependencies(motion_cmd_suber ${DEPENDENCY_LIST})
 #         low_level_ctrl
 #         DESTINATION)
 
+add_subdirectory(common)
 add_subdirectory(third_party)
 add_subdirectory(app)
 

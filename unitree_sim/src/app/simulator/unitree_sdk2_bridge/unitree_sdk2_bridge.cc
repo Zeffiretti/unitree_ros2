@@ -7,36 +7,35 @@ UnitreeSdk2Bridge::UnitreeSdk2Bridge(mjModel* model, mjData* data) : mj_model_(m
   CheckSensor();
 
   if (idl_type_ == 0) {
-    low_cmd_go_suber_.reset(new unitree::robot::ChannelSubscriber<unitree_go::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
-    low_cmd_go_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdGoHandler, this, std::placeholders::_1), 1);
+    low_cmd_go_suber_.reset(new ChannelSubscriber<unitree_go::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+    low_cmd_go_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdGoHandler, this, placeholders::_1), 1);
 
-    low_state_go_puber_.reset(new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::LowState_>(TOPIC_LOWSTATE));
+    low_state_go_puber_.reset(new ChannelPublisher<unitree_go::msg::dds_::LowState_>(TOPIC_LOWSTATE));
     low_state_go_puber_->InitChannel();
 
-    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000,
-                                                                      &UnitreeSdk2Bridge::PublishLowStateGo, this);
+    lowStatePuberThreadPtr =
+        CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishLowStateGo, this);
   } else {
-    low_cmd_hg_suber_.reset(new unitree::robot::ChannelSubscriber<unitree_hg::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
-    low_cmd_hg_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdHgHandler, this, std::placeholders::_1), 1);
+    low_cmd_hg_suber_.reset(new ChannelSubscriber<unitree_hg::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+    low_cmd_hg_suber_->InitChannel(bind(&UnitreeSdk2Bridge::LowCmdHgHandler, this, placeholders::_1), 1);
 
-    low_state_hg_puber_.reset(new unitree::robot::ChannelPublisher<unitree_hg::msg::dds_::LowState_>(TOPIC_LOWSTATE));
+    low_state_hg_puber_.reset(new ChannelPublisher<unitree_hg::msg::dds_::LowState_>(TOPIC_LOWSTATE));
     low_state_hg_puber_->InitChannel();
 
-    lowStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000,
-                                                                      &UnitreeSdk2Bridge::PublishLowStateHg, this);
+    lowStatePuberThreadPtr =
+        CreateRecurrentThreadEx("lowstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishLowStateHg, this);
   }
 
-  high_state_puber_.reset(
-      new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::SportModeState_>(TOPIC_HIGHSTATE));
+  high_state_puber_.reset(new ChannelPublisher<unitree_go::msg::dds_::SportModeState_>(TOPIC_HIGHSTATE));
   high_state_puber_->InitChannel();
   wireless_controller_puber_.reset(
-      new unitree::robot::ChannelPublisher<unitree_go::msg::dds_::WirelessController_>(TOPIC_WIRELESS_CONTROLLER));
+      new ChannelPublisher<unitree_go::msg::dds_::WirelessController_>(TOPIC_WIRELESS_CONTROLLER));
   wireless_controller_puber_->InitChannel();
 
-  HighStatePuberThreadPtr = unitree::common::CreateRecurrentThreadEx("highstate", UT_CPU_ID_NONE, 2000,
-                                                                     &UnitreeSdk2Bridge::PublishHighState, this);
-  WirelessControllerPuberThreadPtr = unitree::common::CreateRecurrentThreadEx(
-      "wirelesscontroller", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishWirelessController, this);
+  HighStatePuberThreadPtr =
+      CreateRecurrentThreadEx("highstate", UT_CPU_ID_NONE, 2000, &UnitreeSdk2Bridge::PublishHighState, this);
+  WirelessControllerPuberThreadPtr = CreateRecurrentThreadEx("wirelesscontroller", UT_CPU_ID_NONE, 2000,
+                                                             &UnitreeSdk2Bridge::PublishWirelessController, this);
 }
 
 UnitreeSdk2Bridge::~UnitreeSdk2Bridge() { delete js_; }
@@ -177,10 +176,10 @@ void UnitreeSdk2Bridge::Run() {
   }
 }
 
-void UnitreeSdk2Bridge::SetupJoystick(std::string device, std::string js_type, int bits) {
+void UnitreeSdk2Bridge::SetupJoystick(string device, string js_type, int bits) {
   js_ = new Joystick(device);
   if (!js_->isFound()) {
-    std::cout << "Error: Joystick open failed." << std::endl;
+    cout << "Error: Joystick open failed." << endl;
     exit(1);
   }
 
@@ -223,56 +222,56 @@ void UnitreeSdk2Bridge::SetupJoystick(std::string device, std::string js_type, i
     js_id_.button["SELECT"] = 10;
     js_id_.button["START"] = 11;
   } else {
-    std::cout << "Unsupported gamepad." << std::endl;
+    cout << "Unsupported gamepad." << endl;
   }
 }
 
 void UnitreeSdk2Bridge::PrintSceneInformation() {
-  std::cout << std::endl;
+  cout << endl;
 
-  std::cout << "<<------------- Link ------------->> " << std::endl;
+  cout << "<<------------- Link ------------->> " << endl;
   for (int i = 0; i < mj_model_->nbody; i++) {
     const char* name = mj_id2name(mj_model_, mjOBJ_BODY, i);
     if (name) {
-      std::cout << "link_index: " << i << ", "
-                << "name: " << name << std::endl;
+      cout << "link_index: " << i << ", "
+           << "name: " << name << endl;
     }
   }
-  std::cout << std::endl;
+  cout << endl;
 
-  std::cout << "<<------------- Joint ------------->> " << std::endl;
+  cout << "<<------------- Joint ------------->> " << endl;
   for (int i = 0; i < mj_model_->njnt; i++) {
     const char* name = mj_id2name(mj_model_, mjOBJ_JOINT, i);
     if (name) {
-      std::cout << "joint_index: " << i << ", "
-                << "name: " << name << std::endl;
+      cout << "joint_index: " << i << ", "
+           << "name: " << name << endl;
     }
   }
-  std::cout << std::endl;
+  cout << endl;
 
-  std::cout << "<<------------- Actuator ------------->> " << std::endl;
+  cout << "<<------------- Actuator ------------->> " << endl;
   for (int i = 0; i < mj_model_->nu; i++) {
     const char* name = mj_id2name(mj_model_, mjOBJ_ACTUATOR, i);
     if (name) {
-      std::cout << "actuator_index: " << i << ", "
-                << "name: " << name << std::endl;
+      cout << "actuator_index: " << i << ", "
+           << "name: " << name << endl;
     }
   }
-  std::cout << std::endl;
+  cout << endl;
 
-  std::cout << "<<------------- Sensor ------------->> " << std::endl;
+  cout << "<<------------- Sensor ------------->> " << endl;
   int index = 0;
   // 多维传感器，输出第一维的index
   for (int i = 0; i < mj_model_->nsensor; i++) {
     const char* name = mj_id2name(mj_model_, mjOBJ_SENSOR, i);
     if (name) {
-      std::cout << "sensor_index: " << index << ", "
-                << "name: " << name << ", "
-                << "dim: " << mj_model_->sensor_dim[i] << std::endl;
+      cout << "sensor_index: " << index << ", "
+           << "name: " << name << ", "
+           << "dim: " << mj_model_->sensor_dim[i] << endl;
     }
     index = index + mj_model_->sensor_dim[i];
   }
-  std::cout << std::endl;
+  cout << endl;
 }
 
 void UnitreeSdk2Bridge::CheckSensor() {

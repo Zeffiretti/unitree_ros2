@@ -7,8 +7,6 @@
 #include <chrono>
 #include <cstring>
 #include <iostream>
-#include <map>
-#include <string>
 #include <unitree/idl/go2/LowCmd_.hpp>
 #include <unitree/idl/go2/LowState_.hpp>
 #include <unitree/idl/go2/SportModeState_.hpp>
@@ -20,10 +18,10 @@
 
 #include "../joystick/joystick.h"
 
-// using namespace unitree::common;
-// using namespace unitree::robot;
+using namespace unitree::common;
+using namespace unitree::robot;
+using namespace std;
 
-// using namespace std;
 #define TOPIC_LOWSTATE "rt/lowstate"
 #define TOPIC_HIGHSTATE "rt/sportmodestate"
 #define TOPIC_LOWCMD "rt/lowcmd"
@@ -68,7 +66,7 @@ typedef struct {
 
 // Defaults to xbox gamepad
 struct JoystickId {
-  std::map<std::string, int> axis = {
+  map<string, int> axis = {
       {"LX", 0},  // Left stick axis x
       {"LY", 1},  // Left stick axis y
       {"RX", 3},  // Right stick axis x
@@ -79,9 +77,8 @@ struct JoystickId {
       {"DY", 7},  // Directional pad y
   };
 
-  std::map<std::string, int> button = {
-      {"X", 2},  {"Y", 3},  {"B", 1},      {"A", 0},
-      {"LB", 4}, {"RB", 5}, {"SELECT", 6}, {"START", 7},
+  map<string, int> button = {
+      {"X", 2}, {"Y", 3}, {"B", 1}, {"A", 0}, {"LB", 4}, {"RB", 5}, {"SELECT", 6}, {"START", 7},
   };
 };
 
@@ -100,31 +97,24 @@ class UnitreeSdk2Bridge {
   void Run();
   void PrintSceneInformation();
   void CheckSensor();
-  void SetupJoystick(std::string device, std::string js_type, int bits);
+  void SetupJoystick(string device, string js_type, int bits);
 
-  unitree::robot::ChannelSubscriberPtr<unitree_go::msg::dds_::LowCmd_>
-      low_cmd_go_suber_;
-  unitree::robot::ChannelSubscriberPtr<unitree_hg::msg::dds_::LowCmd_>
-      low_cmd_hg_suber_;
+  ChannelSubscriberPtr<unitree_go::msg::dds_::LowCmd_> low_cmd_go_suber_;
+  ChannelSubscriberPtr<unitree_hg::msg::dds_::LowCmd_> low_cmd_hg_suber_;
 
   unitree_go::msg::dds_::LowState_ low_state_go_{};
   unitree_hg::msg::dds_::LowState_ low_state_hg_{};
   unitree_go::msg::dds_::SportModeState_ high_state_{};
   unitree_go::msg::dds_::WirelessController_ wireless_controller_{};
 
-  unitree::robot::ChannelPublisherPtr<unitree_go::msg::dds_::LowState_>
-      low_state_go_puber_;
-  unitree::robot::ChannelPublisherPtr<unitree_hg::msg::dds_::LowState_>
-      low_state_hg_puber_;
-  unitree::robot::ChannelPublisherPtr<unitree_go::msg::dds_::SportModeState_>
-      high_state_puber_;
-  unitree::robot::ChannelPublisherPtr<
-      unitree_go::msg::dds_::WirelessController_>
-      wireless_controller_puber_;
+  ChannelPublisherPtr<unitree_go::msg::dds_::LowState_> low_state_go_puber_;
+  ChannelPublisherPtr<unitree_hg::msg::dds_::LowState_> low_state_hg_puber_;
+  ChannelPublisherPtr<unitree_go::msg::dds_::SportModeState_> high_state_puber_;
+  ChannelPublisherPtr<unitree_go::msg::dds_::WirelessController_> wireless_controller_puber_;
 
-  unitree::common::ThreadPtr lowStatePuberThreadPtr;
-  unitree::common::ThreadPtr HighStatePuberThreadPtr;
-  unitree::common::ThreadPtr WirelessControllerPuberThreadPtr;
+  ThreadPtr lowStatePuberThreadPtr;
+  ThreadPtr HighStatePuberThreadPtr;
+  ThreadPtr WirelessControllerPuberThreadPtr;
 
   xKeySwitchUnion dds_keys_ = {};
   xRockerBtnDataStruct wireless_remote_ = {};
