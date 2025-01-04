@@ -20,9 +20,9 @@ target_include_directories(unitree_controller PRIVATE ${UNITREE_INCLUDE_DIRS})
 target_link_libraries(unitree_controller ${SIM_DEPENDENCIES} unitreesim_common)
 ament_target_dependencies(unitree_controller ${DEPENDENCY_LIST})
 
-add_executable(sdk2_controller sdk2_main.cc)
-target_include_directories(sdk2_controller PRIVATE ${UNITREE_INCLUDE_DIRS})
-target_link_libraries(sdk2_controller ${SIM_DEPENDENCIES})
-target_link_libraries(sdk2_controller unitree_sdk2)
+# add_executable(sdk2_controller sdk2_main.cc)
+# target_include_directories(sdk2_controller PRIVATE ${UNITREE_INCLUDE_DIRS})
+# target_link_libraries(sdk2_controller ${SIM_DEPENDENCIES})
+# target_link_libraries(sdk2_controller unitree_sdk2)
 
 # SET(CMAKE_BUILD_TYPE Release)
