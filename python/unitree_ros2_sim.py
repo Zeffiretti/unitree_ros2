@@ -165,6 +165,7 @@ class UnitreeRos2Real(Node):
         dof_pos_protect_ratio=1.1,  # if the dof_pos is out of the range of this ratio, the process will shutdown.
         robot_class_name="Go2",
         dryrun=True,  # if True, the robot will not send commands to the real robot
+        safety_check=True,
     ):
         super().__init__("unitree_ros2_real")
         self.NUM_DOF = getattr(RobotCfgs, robot_class_name).NUM_DOF
@@ -204,6 +205,8 @@ class UnitreeRos2Real(Node):
         self.gravity_vec = torch.zeros((1, 3), device=self.model_device, dtype=torch.float32)
         self.gravity_vec[:, self.up_axis_idx] = -1
 
+        self.safety_check = safety_check
+
         self.init_buffer()
 
     def init_buffer(self):
@@ -223,8 +226,9 @@ class UnitreeRos2Real(Node):
         self.dof_vel_ = torch.empty(1, self.NUM_DOF, device=self.model_device, dtype=torch.float32)
         self.default_dof_pos = [0.0] * self.NUM_DOF
         self.default_dof_pos = torch.tensor(self.default_dof_pos, device=self.model_device, dtype=torch.float32)
+        self.low_state_received = False
 
-        self.computer_clip_torque = True
+        self.computer_clip_torque = False
         self.get_logger().info("Computer Clip Torque (onboard) is " + str(self.computer_clip_torque))
         self.torque_limits = getattr(RobotCfgs, self.robot_class_name).torque_limits.to(self.model_device)
         if self.computer_clip_torque:
@@ -238,7 +242,7 @@ class UnitreeRos2Real(Node):
         self.action_scale = 1.0
         self.get_logger().info("[Env] action scale: {:.1f}".format(self.action_scale))
 
-        self.clip_actions = True
+        self.clip_actions = False
         self.actions = torch.zeros(self.NUM_ACTIONS, device=self.model_device, dtype=torch.float32)
 
         # hardware related, in isaacgym order
@@ -289,7 +293,7 @@ class UnitreeRos2Real(Node):
             )
         while rclpy.ok():
             rclpy.spin_once(self)
-            if hasattr(self, "low_state_buffer") and hasattr(self, "joy_stick_buffer"):
+            if hasattr(self, "low_state_buffer"):
                 break
         self.get_logger().info("Low state message received, the robot is ready to go.")
 
@@ -317,8 +321,10 @@ class UnitreeRos2Real(Node):
                     f"Joint {sim_idx}(sim), {real_idx}(real) position out of range at {self.low_state_buffer.motor_state[real_idx].q}"
                 )
                 self.get_logger().error("The motors and this process shuts down.")
-                self._turn_off_motors()
-                raise SystemExit()
+                if self.safety_check:
+                    self._turn_off_motors()
+                    raise SystemExit()
+        self.low_state_received = True
 
     def _joy_stick_callback(self, msg):
         self.joy_stick_buffer = msg
@@ -611,3 +617,9 @@ class UnitreeRos2Real(Node):
         self.low_cmd_pub.publish(self.low_cmd_buffer)
 
     """ Done: functions that actually publish the commands and take effect """
+
+    def enable_safety_check(self):
+        self.safety_check = True
+
+    def disable_safety_check(self):
+        self.safety_check = False
