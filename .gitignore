@@ -3,6 +3,7 @@
 **/__pycache__/
 **/log/
 **/install/
+.cache
 
 log/
 install/
