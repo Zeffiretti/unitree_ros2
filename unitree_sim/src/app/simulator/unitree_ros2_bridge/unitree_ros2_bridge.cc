@@ -6,6 +6,19 @@ namespace unitreesim::ros2 {
 
 // using namespace std::placeholders::_1;
 
+uint16_t KEYBOARD_L1 = 0b00000010;                // 2
+uint16_t KEYBOARD_R2 = 0b00010000;                // 16
+uint16_t KEYBOARD_B = 0b1000000000;               // 512
+uint16_t KEYBOARD_KEY_UP = 0b1000000000000;       // 4096
+uint16_t KEYBOARD_KEY_RIGHT = 0b10000000000000;   // 8192
+uint16_t KEYBOARD_KEY_DOWN = 0b100000000000000;   // 16384
+uint16_t KEYBOARD_KEY_LEFT = 0b1000000000000000;  // 32768
+
+uint16_t KEYBOARD_KEY_UPRIGHT = KEYBOARD_KEY_RIGHT | KEYBOARD_KEY_UP;
+uint16_t KEYBOARD_KEY_DOWNRIGHT = KEYBOARD_KEY_RIGHT | KEYBOARD_KEY_DOWN;
+uint16_t KEYBOARD_KEY_DOWNLEFT = KEYBOARD_KEY_LEFT | KEYBOARD_KEY_DOWN;
+uint16_t KEYBOARD_KEY_UPLEFT = KEYBOARD_KEY_LEFT | KEYBOARD_KEY_UP;
+
 UnitreeRos2Bridge::UnitreeRos2Bridge(mjModel* model, mjData* data, const std::string& node_name, bool dry_run)
     : rclcpp::Node(node_name), mj_data_(data), mj_model_(model) {
   CheckSensor();
@@ -93,6 +106,10 @@ void UnitreeRos2Bridge::PublishLowStateGo() {
       GetWirelessRemote();
       memcpy(&low_state_go_.wireless_remote[0], &wireless_remote_, 40);
     }
+    // if (keyboard_) {
+    //   GetKeyboard();
+    //   memcpy(&low_state_go_.wireless_remote[0], &wireless_remote_, 40);
+    // }
 
     low_state_go_puber_->publish(low_state_go_);
   }
@@ -182,6 +199,16 @@ void UnitreeRos2Bridge::PublishWirelessController() {
     wireless_controller_.keys = dds_keys_.value;
 
     wireless_controller_puber_->publish(wireless_controller_);
+  }
+  if (keyboard_ && keyboard_->pressed) {
+    GetKeyboard();
+    wireless_controller_.lx = keyboard_->lx;
+    wireless_controller_.ly = keyboard_->ly;
+    wireless_controller_.rx = keyboard_->rx;
+    wireless_controller_.ry = keyboard_->ry;
+    wireless_controller_.keys = keyboard_->keys;
+    wireless_controller_puber_->publish(wireless_controller_);
+    keyboard_->clear();
   }
 }
 
@@ -308,5 +335,26 @@ void UnitreeRos2Bridge::GetWirelessRemote() {
   wireless_remote_.ly = -double(js_->axis_[js_id_.axis["LY"]]) / max_value_;
   wireless_remote_.rx = double(js_->axis_[js_id_.axis["RX"]]) / max_value_;
   wireless_remote_.ry = -double(js_->axis_[js_id_.axis["RY"]]) / max_value_;
+}
+
+void UnitreeRos2Bridge::GetKeyboard() {
+  if (keyboard_ && keyboard_->pressed) {
+    wireless_remote_.btn.components.up = keyboard_->keys & KEYBOARD_KEY_UP;
+    wireless_remote_.btn.components.right = keyboard_->keys & KEYBOARD_KEY_RIGHT;
+    wireless_remote_.btn.components.down = keyboard_->keys & KEYBOARD_KEY_DOWN;
+    wireless_remote_.btn.components.left = keyboard_->keys & KEYBOARD_KEY_LEFT;
+    wireless_remote_.btn.components.R2 = keyboard_->keys & KEYBOARD_R2;
+    wireless_remote_.btn.components.L1 = keyboard_->keys & KEYBOARD_L1;
+    wireless_remote_.btn.components.B = keyboard_->keys & KEYBOARD_B;
+    keyboard_->pressed = false;
+  } else {
+    wireless_remote_.btn.components.up = 0;
+    wireless_remote_.btn.components.right = 0;
+    wireless_remote_.btn.components.down = 0;
+    wireless_remote_.btn.components.left = 0;
+    wireless_remote_.btn.components.R2 = 0;
+    wireless_remote_.btn.components.L1 = 0;
+    wireless_remote_.btn.components.B = 0;
+  }
 }
 }  // namespace unitreesim::ros2

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SIMULATOR_MUJOCO_SRC_MUJOCO_PLATFORM_UI_ADAPTER_H_
-#define SIMULATOR_MUJOCO_SRC_MUJOCO_PLATFORM_UI_ADAPTER_H_
+#ifndef UNITREE_SIM_SRC_APP_SIMULATOR_MUJOCO_PLATFORM_UI_ADAPTER_H_
+#define UNITREE_SIM_SRC_APP_SIMULATOR_MUJOCO_PLATFORM_UI_ADAPTER_H_
 
 #include <GLFW/glfw3.h>
 #include <mujoco/mujoco.h>
@@ -32,13 +32,9 @@ class PlatformUIAdapter {
   inline mjrContext& mjr_context() { return con_; }
   inline const mjrContext& mjr_context() const { return con_; }
 
-  inline void SetEventCallback(void (*event_callback)(mjuiState*)) {
-    event_callback_ = event_callback;
-  }
+  inline void SetEventCallback(void (*event_callback)(mjuiState*)) { event_callback_ = event_callback; }
 
-  inline void SetLayoutCallback(void (*layout_callback)(mjuiState*)) {
-    layout_callback_ = layout_callback;
-  }
+  inline void SetLayoutCallback(void (*layout_callback)(mjuiState*)) { layout_callback_ = layout_callback; }
 
   // Optionally overridable function to (re)create an mjrContext for an mjModel
   virtual bool RefreshMjrContext(const mjModel* m, int fontscale);
@@ -106,4 +102,4 @@ class PlatformUIAdapter {
 };
 }  // namespace mujoco
 
-#endif  // SIMULATOR_MUJOCO_SRC_MUJOCO_PLATFORM_UI_ADAPTER_H_
+#endif  // UNITREE_SIM_SRC_APP_SIMULATOR_MUJOCO_PLATFORM_UI_ADAPTER_H_

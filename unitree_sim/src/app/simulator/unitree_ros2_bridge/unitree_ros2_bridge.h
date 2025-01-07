@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <string>
 #include <unitree_go/msg/low_cmd.hpp>
@@ -18,6 +19,7 @@
 // #include <unitree_hg/msg/sport_mode_state.hpp>
 
 #include "app/simulator/joystick/joystick.h"
+#include "app/simulator/keyboard/keyboard.h"
 
 namespace unitreesim::ros2 {
 #define TOPIC_LOWSTATE "/lowstate"
@@ -89,6 +91,7 @@ class UnitreeRos2Bridge : public rclcpp::Node {
   void CheckSensor();
   void PrintSceneInformation();
   void SetupJoystick(std::string device, std::string js_type, int bits);
+  void SetupKeyboard(std::shared_ptr<Keyboard> keyboard) { keyboard_ = keyboard; }
 
  private:
   void LowCmdGoHandler(const unitree_go::msg::LowCmd::SharedPtr msg);
@@ -139,8 +142,11 @@ class UnitreeRos2Bridge : public rclcpp::Node {
   unitree_hg::msg::LowState low_state_hg_;
   unitree_hg::msg::LowCmd low_cmd_hg_;
 
+  std::shared_ptr<Keyboard> keyboard_;
+
  private:
   void GetWirelessRemote();
+  void GetKeyboard();
 };
 }  // namespace unitreesim::ros2
 

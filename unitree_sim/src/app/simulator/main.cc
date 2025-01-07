@@ -78,6 +78,8 @@ struct SimulationConfig {
   std::string joystick_device = "/dev/input/js0";
   int joystick_bits = 16;
 
+  int use_keyboard = 0;
+
   int print_scene_information = 1;
 
   int enable_elastic_band = 0;
@@ -496,6 +498,8 @@ void* UnitreeRos2BridgeThread(void* arg) {
   } else {
     config.band_attached_link = 6 * mj_name2id(m, mjOBJ_BODY, "base_link");
   }
+  // convert arg to sim
+  mj::Simulate* sim = static_cast<mj::Simulate*>(arg);
 
   // UnitreeSdk2Bridge unitree_interface(m, d);
   // unitreesim::ros2::UnitreeRos2Bridge unitree_interface(m, d);
@@ -503,6 +507,9 @@ void* UnitreeRos2BridgeThread(void* arg) {
 
   if (config.use_joystick == 1) {
     unitree_interface->SetupJoystick(config.joystick_device, config.joystick_type, config.joystick_bits);
+  }
+  if (config.use_keyboard) {
+    unitree_interface->SetupKeyboard(sim->keyboard_);
   }
 
   if (config.print_scene_information == 1) {
@@ -605,6 +612,7 @@ int main(int argc, char** argv) {
   config.joystick_type = yaml_node["joystick_type"].as<std::string>();
   config.joystick_device = yaml_node["joystick_device"].as<std::string>();
   config.joystick_bits = yaml_node["joystick_bits"].as<int>();
+  config.use_keyboard = yaml_node["use_keyboard"].as<int>();
   config.comm_bridge = yaml_node["comm_bridge"].as<std::string>();
 
   sim->use_elastic_band_ = config.enable_elastic_band;
@@ -626,7 +634,7 @@ int main(int argc, char** argv) {
   int rc = -1;
   if (config.comm_bridge == "ros2") {
     std::cout << "Unitree ROS2 Bridge" << std::endl;
-    rc = pthread_create(&unitree_thread, NULL, UnitreeRos2BridgeThread, NULL);
+    rc = pthread_create(&unitree_thread, NULL, UnitreeRos2BridgeThread, sim.get());
   } else if (config.comm_bridge == "sdk2") {
     std::cerr << "Cannot Create Unitree SDK2 Bridge" << std::endl;
     // rc = pthread_create(&unitree_thread, NULL, UnitreeSdk2BridgeThread, NULL);
