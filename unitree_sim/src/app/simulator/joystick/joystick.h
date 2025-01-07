@@ -80,14 +80,14 @@ class JoystickEvent {
    * The ostream inserter needs to be a friend so it can access the
    * internal data structures.
    */
-  friend std::ostream &operator<<(std::ostream &os, const JoystickEvent &e);
+  friend std::ostream& operator<<(std::ostream& os, const JoystickEvent& e);
 };
 
 /**
  * Stream insertion function so you can do this:
  *    cout << event << endl;
  */
-std::ostream &operator<<(std::ostream &os, const JoystickEvent &e);
+std::ostream& operator<<(std::ostream& os, const JoystickEvent& e);
 
 /**
  * Represents a joystick device. Allows data to be sampled from it.
@@ -119,12 +119,12 @@ class Joystick {
   /**
    * Joystick objects cannot be copied
    */
-  Joystick(Joystick const &) = delete;
+  Joystick(Joystick const&) = delete;
 
   /**
    * Joystick objects can be moved
    */
-  Joystick(Joystick &&) = default;
+  Joystick(Joystick&&) = default;
 
   /**
    * Initialises an instance for the joystick device specified and provide
@@ -148,7 +148,7 @@ class Joystick {
   int button_[20] = {0};
   int axis_[10] = {0};
 
-  bool sample(JoystickEvent *event);
+  bool sample(JoystickEvent* event);
 };
 
 #endif

@@ -30,13 +30,9 @@ class PlatformUIAdapter {
   inline mjrContext& mjr_context() { return con_; }
   inline const mjrContext& mjr_context() const { return con_; }
 
-  inline void SetEventCallback(void (*event_callback)(mjuiState*)) {
-    event_callback_ = event_callback;
-  }
+  inline void SetEventCallback(void (*event_callback)(mjuiState*)) { event_callback_ = event_callback; }
 
-  inline void SetLayoutCallback(void (*layout_callback)(mjuiState*)) {
-    layout_callback_ = layout_callback;
-  }
+  inline void SetLayoutCallback(void (*layout_callback)(mjuiState*)) { layout_callback_ = layout_callback; }
 
   // Optionally overridable function to (re)create an mjrContext for an mjModel
   virtual bool RefreshMjrContext(const mjModel* m, int fontscale);
